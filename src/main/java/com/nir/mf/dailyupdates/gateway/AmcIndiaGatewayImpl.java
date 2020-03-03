@@ -5,7 +5,10 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 import static org.springframework.http.HttpMethod.GET;
 
@@ -19,6 +22,7 @@ import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 
 import com.nir.mf.dailyupdates.bean.NavObject;
+import com.nir.mf.dailyupdates.bean.SearchResult;
 import com.nir.mf.dailyupdates.config.Config;
 import com.nir.mf.dailyupdates.exception.ExternalServiceException;
 import com.nir.mf.dailyupdates.exception.RecordNotFoundException;
@@ -53,24 +57,30 @@ public class AmcIndiaGatewayImpl implements NavGateWay {
 		}
 		return navObject;
 	}
-
-	private NavObject getNavRecordFromCache(Integer schemaCode) throws ExternalServiceException {
-		HashMap<Integer, NavObject> map=null;
+	
+	private Map<Integer, NavObject> getNavRecordsFromCache() throws ExternalServiceException {
+		Map<Integer, NavObject> map=null;
 		if(cacheManager.getCache("navAll").get("objects")!=null) {
 			map = (HashMap<Integer, NavObject>) cacheManager.getCache("navAll").get("objects").get();
 		}
 		if (map != null) {
-			return map.get(schemaCode);
+			return map;
 		} else {
 			logger.info("Pulling from external as the cache is empty or expired");
 			map = this.pullFromExternal();
 			cacheManager.getCache("navAll").put("objects", map);
-			return map.get(schemaCode);
+			return map;
 		}
 	}
 
-	public HashMap<Integer, NavObject> pullFromExternal() throws ExternalServiceException {
-		HashMap<Integer, NavObject> map = null;
+	private NavObject getNavRecordFromCache(Integer schemaCode) throws ExternalServiceException {
+		
+		return this.getNavRecordsFromCache().get(schemaCode);
+		
+	}
+
+	public Map<Integer, NavObject> pullFromExternal() throws ExternalServiceException {
+		Map<Integer, NavObject> map = null;
 		try {
 			ResponseEntity<String> responseEntity = restTemplate.exchange(new URI(amfUrl), GET, null, String.class);
 			if (responseEntity.getBody() != null) {
@@ -79,8 +89,12 @@ public class AmcIndiaGatewayImpl implements NavGateWay {
 					if (str.contains(";")) {
 						String[] splits = str.split(";");
 						if (Utility.isInteger(splits[0])) {
-							
-								if(!Utility.isInteger(splits[4])) splits[4]="0.00";
+							   
+								if(!Utility.isDecimal(splits[4])) 
+								{
+									splits[4]="0.00"; 
+									
+								}
 								NavObject navObject = new NavObject(new Integer(splits[0]), splits[1], splits[2], splits[3],
 										new BigDecimal(splits[4]), simpleDateFormat.parse(splits[5]));
 								map.put(new Integer(splits[0]), navObject);
@@ -98,5 +112,23 @@ public class AmcIndiaGatewayImpl implements NavGateWay {
 
 		}
 
+	}
+
+	@Override
+	public List<SearchResult> searchScheme(String filter) {
+		// TODO Auto-generated method stub
+		
+		List<SearchResult> result = new ArrayList<SearchResult>();
+		
+		Map<Integer, NavObject> navObjects = this.getNavRecordsFromCache();
+		for(Integer schemeCode: navObjects.keySet()) {
+			if(navObjects.get(schemeCode).getSchemeName()!=null) {
+				if(navObjects.get(schemeCode).getSchemeName().toLowerCase().contains(filter.toLowerCase())) {
+					
+					result.add(new SearchResult(schemeCode, navObjects.get(schemeCode).getSchemeName()));
+				}
+			}
+		}
+		return result;
 	}
 }

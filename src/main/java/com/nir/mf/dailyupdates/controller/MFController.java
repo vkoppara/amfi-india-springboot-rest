@@ -1,5 +1,6 @@
 package com.nir.mf.dailyupdates.controller;
 
+import java.util.List;
 import java.util.Map;
 
 import org.apache.logging.log4j.LogManager;
@@ -14,6 +15,7 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.nir.mf.dailyupdates.bean.NavObject;
+import com.nir.mf.dailyupdates.bean.SearchResult;
 import com.nir.mf.dailyupdates.gateway.NavGateWay;
 
 @RestController
@@ -31,6 +33,15 @@ public class MFController {
 		ResponseEntity<NavObject> responseEntity = new ResponseEntity<NavObject>(navGateway.getNavRecord(schemeCode),HttpStatus.OK);
 		return  responseEntity;
 
+	}
+	
+	@RequestMapping(value = "/searchScheme/{filter}",method = RequestMethod.GET)
+	public ResponseEntity<List<SearchResult>> searchScheme(@RequestHeader Map<String,String> requestHeaders,
+			@PathVariable(value = "filter") String filter) {
+		logger.info("Received request for searching scheme filter: {}",filter);
+		ResponseEntity<List<SearchResult>> responseEntity = new ResponseEntity<List<SearchResult>>(navGateway.searchScheme(filter),HttpStatus.OK);
+		return responseEntity;				
+		
 	}
 	
 

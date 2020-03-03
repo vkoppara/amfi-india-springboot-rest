@@ -14,4 +14,17 @@ public class Utility {
 		
 	}
 
+	public static Boolean isDecimal(String str) {
+		// TODO Auto-generated method stub
+		try {
+			Double.parseDouble(str);
+			return true;
+		
+		}catch(NumberFormatException e) {
+			return false;
+		}catch(Exception e) {
+			return null;
+		}
+	}
+
 }
