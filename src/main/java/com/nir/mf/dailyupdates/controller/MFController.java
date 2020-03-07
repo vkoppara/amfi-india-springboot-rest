@@ -59,7 +59,7 @@ public class MFController {
 	public ResponseEntity<List<Funds>> parseKarvyPdf(@RequestHeader Map<String,String> requestHeaders, 
 			@RequestBody PdfRequest pdfRequest){
 		List<Funds> parsedResult = pdfParser.parseKarvyPdf(pdfRequest.getPdfStream(),pdfRequest.getPassword());
-		ResponseEntity<List<Funds>> responseEntity = new ResponseEntity<List<Funds>>(calculateRates.calculate(parsedResult),HttpStatus.OK);
+		ResponseEntity<List<Funds>> responseEntity = new ResponseEntity<List<Funds>>(pdfRequest.isDoCalculate()?calculateRates.calculate(parsedResult):parsedResult,HttpStatus.OK);
 		//ResponseEntity<List<Funds>> responseEntity = new ResponseEntity<List<Funds>>(parsedResult,HttpStatus.OK);
 		return responseEntity;
 	}

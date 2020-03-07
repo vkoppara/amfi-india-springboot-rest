@@ -5,15 +5,9 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.SortedMap;
-import java.util.SortedSet;
-import java.util.TreeMap;
 import java.util.TreeSet;
 
 import static org.springframework.http.HttpMethod.GET;
@@ -30,7 +24,6 @@ import org.springframework.web.client.RestTemplate;
 import com.nir.mf.dailyupdates.bean.NavObject;
 import com.nir.mf.dailyupdates.bean.Rank;
 import com.nir.mf.dailyupdates.bean.SearchResult;
-import com.nir.mf.dailyupdates.config.Config;
 import com.nir.mf.dailyupdates.exception.ExternalServiceException;
 import com.nir.mf.dailyupdates.exception.RecordNotFoundException;
 import com.nir.mf.dailyupdates.utility.Utility;
@@ -86,6 +79,7 @@ public class AmcIndiaGatewayImpl implements NavGateWay {
 		
 	}
 
+	@Override
 	public Map<Integer, NavObject> pullFromExternal() throws ExternalServiceException {
 		Map<Integer, NavObject> map = null;
 		try {
