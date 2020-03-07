@@ -1,13 +1,21 @@
 package com.nir.mf.dailyupdates.bean;
 
+import java.util.Comparator;
 import java.util.Map;
 
-public class SearchResult {
+public class SearchResult implements Comparable<SearchResult> {
 	private Integer schemeCode;
 	private String schemeName;
+	private Rank rank;
 	
 	public SearchResult() {
 		
+	}
+	public Rank getRank() {
+		return rank;
+	}
+	public void setRank(Rank rank) {
+		this.rank = rank;
 	}
 	public SearchResult(Integer schemeCode, String schemeName) {
 		this.schemeCode = schemeCode;
@@ -26,5 +34,16 @@ public class SearchResult {
 	public void setSchemeName(String schemeName) {
 		this.schemeName = schemeName;
 	}	
+
+
+	
+	@Override
+	public int compareTo(SearchResult sr1) {
+		// TODO Auto-generated method stub
+		if(this.getRank().getRank()>=sr1.getRank().getRank()) {
+			return -1;
+		}
+		else return 1;
+	}
 
 }

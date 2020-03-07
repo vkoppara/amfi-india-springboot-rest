@@ -12,5 +12,5 @@ public interface NavGateWay {
 
 	public NavObject getNavRecord(Integer schemeCode) throws RecordNotFoundException, ExternalServiceException;
 	public Map<Integer, NavObject> pullFromExternal() throws ExternalServiceException;
-	public List<SearchResult> searchScheme(String filter);
+	public SearchResult searchScheme(String filter);
 }

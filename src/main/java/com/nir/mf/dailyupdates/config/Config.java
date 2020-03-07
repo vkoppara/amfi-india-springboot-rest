@@ -19,9 +19,12 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
 import org.springframework.web.client.RestTemplate;
 
+import com.nir.mf.dailyupdates.businesslayer.CalculateRates;
 import com.nir.mf.dailyupdates.exception.ExternalServiceException;
 import com.nir.mf.dailyupdates.gateway.AmcIndiaGatewayImpl;
 import com.nir.mf.dailyupdates.gateway.NavGateWay;
+import com.nir.mf.dailyupdates.parser.KarvyPdfParser;
+import com.nir.mf.dailyupdates.parser.PdfParser;
 
 
 
@@ -56,7 +59,15 @@ public class Config {
 		return new AmcIndiaGatewayImpl();
 	}
 	
+	@Bean
+	public PdfParser retrievePdfParser() {
+		return new KarvyPdfParser();
+	}
 
+	@Bean
+	public CalculateRates getCalculateRates() {
+		return new CalculateRates();
+	}
 	
 	@Bean
 	public CacheManager cacheManager(NavGateWay gateway) {
@@ -77,7 +88,8 @@ public class Config {
 				.defaultSetup(b->b.entryCapacity(1000))
 				.addCaches(
 						b -> b.name("navAll").expireAfterWrite(cachingInterval, TimeUnit.SECONDS)
-						.addListener(listener));		
+						.addListener(listener))
+				.addCaches(b -> b.name("schemaSearch"));		
 	}
 	
 	

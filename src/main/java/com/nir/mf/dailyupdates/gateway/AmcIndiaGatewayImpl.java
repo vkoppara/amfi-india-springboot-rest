@@ -6,9 +6,15 @@ import java.net.URISyntaxException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.SortedMap;
+import java.util.SortedSet;
+import java.util.TreeMap;
+import java.util.TreeSet;
 
 import static org.springframework.http.HttpMethod.GET;
 
@@ -22,6 +28,7 @@ import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 
 import com.nir.mf.dailyupdates.bean.NavObject;
+import com.nir.mf.dailyupdates.bean.Rank;
 import com.nir.mf.dailyupdates.bean.SearchResult;
 import com.nir.mf.dailyupdates.config.Config;
 import com.nir.mf.dailyupdates.exception.ExternalServiceException;
@@ -113,22 +120,92 @@ public class AmcIndiaGatewayImpl implements NavGateWay {
 		}
 
 	}
-
+	
 	@Override
-	public List<SearchResult> searchScheme(String filter) {
+	public SearchResult searchScheme( String filter) throws ExternalServiceException {
+		SearchResult result=null;
+		//Disable Cache for search..
+		if(cacheManager.getCache("schemaSearch").get(filter)!=null && false) {
+			result = (SearchResult) cacheManager.getCache("schemaSearch").get(filter).get();
+		}
+		if (result != null) {
+			return result;
+		} else {
+			logger.info("Pulling from external as the cache is empty or expired");
+			result = searchRawScheme(filter);
+			cacheManager.getCache("schemaSearch").put(filter, result);
+			return result;
+		}
+	}
+
+	
+	public SearchResult searchRawScheme(String filter) {
 		// TODO Auto-generated method stub
 		
-		List<SearchResult> result = new ArrayList<SearchResult>();
-		
+				
+		Set<SearchResult> sortedList = new TreeSet<SearchResult>();
 		Map<Integer, NavObject> navObjects = this.getNavRecordsFromCache();
 		for(Integer schemeCode: navObjects.keySet()) {
 			if(navObjects.get(schemeCode).getSchemeName()!=null) {
-				if(navObjects.get(schemeCode).getSchemeName().toLowerCase().contains(filter.toLowerCase())) {
+				
+					Rank rnk= matchRank(navObjects.get(schemeCode).getSchemeName(),filter);					
+					SearchResult sr = new SearchResult(schemeCode,navObjects.get(schemeCode).getSchemeName());
+					sr.setRank(rnk);
+					sortedList.add(sr);
 					
-					result.add(new SearchResult(schemeCode, navObjects.get(schemeCode).getSchemeName()));
-				}
 			}
 		}
+		
+		
+		int i=0;
+		SearchResult result = new SearchResult();
+		result.setRank(new Rank(0,0.0));
+		for(SearchResult sr:sortedList) {
+			if(i++>5) break;
+			if(sr.getRank().getPercentage()>result.getRank().getPercentage())
+				result = sr;
+          //  System.out.println(sr.getSchemeName()+":"+sr.getRank().getPercentage());
+			
+			
+		}
+		
 		return result;
+	}
+	
+	
+	
+	private static Rank matchRank(String cacheString, String filterString) {
+		filterString = filterString.toLowerCase().split("\\(")[0].replace("-"," ").replace(".","");
+		String[] cacheArray = cacheString.replace("-", " ").replace(".", "").split(" ");
+		Rank rnk = new Rank();
+		int count=0;
+		String[] filterArray = filterString.split(" ");
+		if(!filterString.toLowerCase().contains(cacheArray[0].toLowerCase()))
+		{
+			rnk.setRank(0);
+			rnk.setPercentage(0.0);
+			return rnk;
+		}
+		
+		for(String fstr:filterArray) {
+			if(cacheString.toLowerCase().contains(fstr.toLowerCase())) {
+				count++;
+			}
+		}
+		
+		
+		int count2=0;
+		for(String cac:cacheArray) {
+			if(filterString.toLowerCase().contains(" "+cac.toLowerCase()+" ") ) {
+				count2++;
+			}
+		
+		}
+		
+		rnk.setRank(count);
+		rnk.setPercentage(count2*100.0/cacheArray.length);
+		return rnk;
+		
+		
 	}
 }
