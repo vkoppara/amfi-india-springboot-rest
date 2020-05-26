@@ -1,8 +1,5 @@
 package com.nir.mf.dailyupdates.bean;
 
-import java.util.Comparator;
-import java.util.Map;
-
 public class SearchResult implements Comparable<SearchResult> {
 	private Integer schemeCode;
 	private String schemeName;

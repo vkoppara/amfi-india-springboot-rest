@@ -1,5 +1,6 @@
 package com.nir.mf.dailyupdates.controller;
 
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.Map;
 
@@ -20,6 +21,7 @@ import com.nir.mf.dailyupdates.bean.NavObject;
 import com.nir.mf.dailyupdates.bean.PdfRequest;
 import com.nir.mf.dailyupdates.bean.SearchResult;
 import com.nir.mf.dailyupdates.businesslayer.CalculateRates;
+import com.nir.mf.dailyupdates.gateway.CurrencyGateWay;
 import com.nir.mf.dailyupdates.gateway.NavGateWay;
 import com.nir.mf.dailyupdates.parser.PdfParser;
 
@@ -36,6 +38,9 @@ public class MFController {
 	
 	@Autowired
 	private CalculateRates calculateRates;
+	
+	@Autowired
+	private CurrencyGateWay currencyGateWay;
 
 	@RequestMapping(value = "/getNav/{schemeCode}", method = RequestMethod.GET)
 	public ResponseEntity<NavObject> getNav(@RequestHeader Map<String, String> requestHeaders,
@@ -69,6 +74,13 @@ public class MFController {
 			@RequestBody List<Funds> funds){
 		
 		ResponseEntity<List<Funds>> responseEntity = new ResponseEntity<List<Funds>>(calculateRates.calculate(funds),HttpStatus.OK);
+		return responseEntity;
+	}
+	
+	@RequestMapping(value = "/convertUSD2INR", method = RequestMethod.GET)
+	public ResponseEntity<BigDecimal> convertUsdToInr(@RequestHeader Map<String,String> requestHeaders) {
+		
+		ResponseEntity<BigDecimal> responseEntity = new ResponseEntity<BigDecimal>(currencyGateWay.convert(),HttpStatus.OK);
 		return responseEntity;
 	}
 

@@ -22,6 +22,8 @@ import org.springframework.web.client.RestTemplate;
 import com.nir.mf.dailyupdates.businesslayer.CalculateRates;
 import com.nir.mf.dailyupdates.exception.ExternalServiceException;
 import com.nir.mf.dailyupdates.gateway.AmcIndiaGatewayImpl;
+import com.nir.mf.dailyupdates.gateway.CurrencyGateWay;
+import com.nir.mf.dailyupdates.gateway.CurrencyGateWayImpl;
 import com.nir.mf.dailyupdates.gateway.NavGateWay;
 import com.nir.mf.dailyupdates.parser.KarvyPdfParser;
 import com.nir.mf.dailyupdates.parser.PdfParser;
@@ -70,6 +72,11 @@ public class Config {
 	}
 	
 	@Bean
+	public CurrencyGateWay getCurrencyGateWay() {
+		return new CurrencyGateWayImpl();
+	}
+	
+	@Bean
 	public CacheManager cacheManager(NavGateWay gateway) {
 		
 		CacheEntryExpiredListener listener = (cache,entry) ->
@@ -89,7 +96,8 @@ public class Config {
 				.addCaches(
 						b -> b.name("navAll").expireAfterWrite(cachingInterval, TimeUnit.SECONDS)
 						.addListener(listener))
-				.addCaches(b -> b.name("schemaSearch"));		
+				.addCaches(b -> b.name("schemaSearch"))
+				.addCaches(b -> b.name("Currency").expireAfterWrite(cachingInterval, TimeUnit.SECONDS));		
 	}
 	
 	
